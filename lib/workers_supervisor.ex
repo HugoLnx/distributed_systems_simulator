@@ -6,7 +6,7 @@ defmodule WorkersSupervisor do
   end
 
   def init(%{worker_module: worker_module, amount: amount}) do
-    children = for inx <- 1..amount, do: worker_spec(worker_module, inx, [{:via, Registry, {:registry, StorageNode}}])
+    children = for inx <- 1..amount, do: worker_spec(worker_module, inx, [{:via, Registry, {:registry, "storage_node"}}])
     Supervisor.init(children, strategy: :one_for_one)
   end
 
