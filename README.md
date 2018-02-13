@@ -1,5 +1,11 @@
 # DistributedSystemsSimulator
 
+## Starting simulation as a application
+
+```bash
+$ W=2 R=2 T=single_node iex -S mix
+```
+
 **TODO: Add description**
 
 ## Installation
