@@ -1,5 +1,4 @@
 defmodule Metrics do
-  require IEx
   use GenServer
 
   @table :metrics
@@ -25,7 +24,7 @@ defmodule Metrics do
   def report do
     Enum.each(@metrics, fn metric ->
       {total, avg} = metric_info(metric)
-      IO.puts "#{metric}: total:#{total}\tavg:#{avg}"
+      IO.puts "#{metric}: \ttotal:#{total}\tavg:#{avg}"
     end)
   end
 
