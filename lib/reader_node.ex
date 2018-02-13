@@ -1,5 +1,9 @@
 defmodule ReaderNode do
   use WorkerNode
 
-  def message, do: {:read, FavoriteCoffees.random_person()}
+  def on_work(pid) do
+    Metrics.measure(:read, fn ->
+      GenServer.call(pid, {:read, FavoriteCoffees.random_person()})
+    end)
+  end
 end

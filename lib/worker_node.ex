@@ -1,5 +1,5 @@
 defmodule WorkerNode do
-  @callback message() :: tuple
+  @callback on_work(pid) :: tuple
 
   defmacro __using__(opts) do
     quote do
@@ -21,7 +21,7 @@ defmodule WorkerNode do
 
         nodes
         |> Enum.at(:rand.uniform(length(nodes)) - 1)
-        |> GenServer.call(message())
+        |> on_work
 
         {:noreply, state}
       end

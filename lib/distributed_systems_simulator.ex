@@ -52,6 +52,7 @@ defmodule DistributedSystemsSimulator do
         Process.sleep(duration)
         Application.stop(__MODULE__)
         IO.puts("Simulation has finished")
+        Metrics.report()
       end)
     end
 
@@ -60,6 +61,7 @@ defmodule DistributedSystemsSimulator do
 
   defp start_simulation(:singlenode, %{readers: readers, writers: writers} = opts) do
     children = [
+      Metrics,
       {Registry, keys: :unique, name: :registry},
       SingleNodeSupervisor,
       Supervisor.child_spec(
