@@ -1,7 +1,7 @@
 defmodule WorkersSupervisor do
   use Supervisor
 
-  def start_link(%{worker_module: worker_module}=params) do
+  def start_link(%{worker_module: worker_module} = params) do
     Supervisor.start_link(__MODULE__, params, id: "WorkersSupervisor-#{worker_module}")
   end
 

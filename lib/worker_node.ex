@@ -18,6 +18,7 @@ defmodule WorkerNode do
 
       def handle_info(:work, %{nodes: nodes} = state) do
         schedule_work()
+
         nodes
         |> Enum.at(:rand.uniform(length(nodes)) - 1)
         |> GenServer.call(message())
