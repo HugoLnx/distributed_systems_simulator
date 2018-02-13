@@ -2,7 +2,7 @@ defmodule StorageNode do
   use GenServer
 
   def start_link(_) do
-    GenServer.start_link(__MODULE__, [], name: :storage_node)
+    GenServer.start_link(__MODULE__, [], name: {:via, Registry, {:registry, __MODULE__}})
   end
 
   def init(_) do

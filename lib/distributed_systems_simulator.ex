@@ -58,8 +58,9 @@ defmodule DistributedSystemsSimulator do
     {:ok, supervisor_pid}
   end
 
-  def start_simulation(:singlenode, %{readers: readers, writers: writers} = opts) do
+  defp start_simulation(:singlenode, %{readers: readers, writers: writers} = opts) do
     children = [
+      {Registry, keys: :unique, name: :registry},
       SingleNodeSupervisor,
       Supervisor.child_spec(
         {WorkersSupervisor, %{worker_module: WriterNode, amount: writers}},
