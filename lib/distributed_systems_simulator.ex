@@ -17,7 +17,7 @@ defmodule DistributedSystemsSimulator do
       simulate(simulation_type, %{
         readers: System.get_env("R"),
         writers: System.get_env("W"),
-        duration: System.get_env("D")
+        duration: System.get_env("D") || "2000"
       })
     end
 
@@ -32,13 +32,11 @@ defmodule DistributedSystemsSimulator do
 
     IO.puts("Starting simulation")
     if opts.duration > 0 do
-      Task.async(fn ->
-        Process.sleep(opts.duration)
-        IO.puts("Simulation has finished")
-        Metrics.report()
-        Supervisor.stop(get_simulation_pid())
-        set_simulation_pid(nil)
-      end)
+      Process.sleep(opts.duration)
+      IO.puts("Simulation has finished")
+      Metrics.report()
+      Supervisor.stop(get_simulation_pid())
+      set_simulation_pid(nil)
     end
 
     {:ok, simulation_pid}
