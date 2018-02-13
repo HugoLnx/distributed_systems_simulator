@@ -3,7 +3,7 @@ defmodule WorkerNode do
 
   defmacro __using__(opts) do
     quote do
-      @delay_millis unquote(opts)[:delay_millis] || 100..300
+      @delay_millis unquote(opts)[:delay_millis] || 5..15
       @behaviour WorkerNode
       use GenServer
 
