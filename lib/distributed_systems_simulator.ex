@@ -45,7 +45,7 @@ defmodule DistributedSystemsSimulator do
   defp start_simulation(:singlenode, %{readers: readers, writers: writers} = opts) do
     Supervisor.child_spec(
       {SimulationSupervisor,
-       %{storage_supervisor_spec: SingleNodeSupervisor, writers: writers, readers: readers}},
+       %{storage_supervisor_spec: SingleNodeSupervisor, worker_router: SingleNodeRouter, writers: writers, readers: readers}},
       id: :simulation_supervisor
     )
     |> start_on_application_supervisor

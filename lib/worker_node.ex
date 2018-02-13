@@ -1,5 +1,5 @@
 defmodule WorkerNode do
-  @callback on_work(pid) :: tuple
+  @callback on_work(module) :: tuple
 
   defmacro __using__(opts) do
     quote do
@@ -7,21 +7,19 @@ defmodule WorkerNode do
       @behaviour WorkerNode
       use GenServer
 
-      def start_link(nodes) do
-        GenServer.start_link(__MODULE__, nodes)
+      def start_link(router) do
+        GenServer.start_link(__MODULE__, router)
       end
 
-      def init(nodes) do
+      def init(router) do
         schedule_work()
-        {:ok, %{nodes: nodes}}
+        {:ok, %{router: router}}
       end
 
-      def handle_info(:work, %{nodes: nodes} = state) do
+      def handle_info(:work, %{router: router} = state) do
         schedule_work()
 
-        nodes
-        |> Enum.at(:rand.uniform(length(nodes)) - 1)
-        |> on_work
+        on_work(router)
 
         {:noreply, state}
       end
