@@ -21,7 +21,6 @@ defmodule DistributedSystemsSimulator do
         readers: System.get_env("R"),
         writers: System.get_env("W"),
         slaves: System.get_env("K"),
-        dummies: System.get_env("M"),
         duration: System.get_env("D") || "2000",
       })
     end
@@ -126,13 +125,6 @@ defmodule DistributedSystemsSimulator do
       |> to_string
       |> String.to_integer()
 
-    dummies =
-      opts
-      |> Map.get(:dummies)
-      |> if_nil(2000)
-      |> to_string
-      |> String.to_integer()
-
     duration =
       opts
       |> Map.get(:duration)
@@ -145,7 +137,6 @@ defmodule DistributedSystemsSimulator do
       readers: readers,
       writers: writers,
       slaves: slaves,
-      dummies: dummies,
       duration: duration
     }
   end
