@@ -21,7 +21,7 @@ write:  total:95947     avg:0.271
 ```
 
 ## Comparing single node with master-slave replication
-# Single node with low number of writers and readers
+### Single node with low number of writers and readers
 ```bash
 $ W=1 R=1 T=singlenode D=10000 mix
 read: 	total:20	avg:495.4
@@ -29,7 +29,7 @@ write: 	total:20	avg:478.35
 ```
 It could atend 40 request with an average response time is of 500ms.
 
-# Single node with high number of readers
+### Single node with high number of readers
 ```bash
 $ W=1 R=3 T=singlenode D=10000 mix
 read: 	total:34	avg:849.206
@@ -44,7 +44,7 @@ Observe that, as the number of readers rise, the response time grows, but the to
 
 Also notice that we are attending pretty less writes, because the single node are too much occupied with the reads.
 
-# Master-Slave replication with high number of readers
+### Master-Slave replication with high number of readers
 ```bash
 $ W=1 R=7 K=2 T=masterslave D=10000 mix
 read: 	total:76	avg:877.276
@@ -60,7 +60,7 @@ With two slaves and one master, the system could attend 2x more reads with 50% o
 With five slaves and one master, the system could attend 4x more reads with 25% of the response time and kept 8x more writes with 15% of the response time (thats because it still a single node to write)
 
 
-# Master-Slave replication with high number of readers and writers
+### Master-Slave replication with high number of readers and writers
 ``` bash
 $ W=7 R=7 K=5 T=masterslave D=10000 mix
 read: 	total:153	avg:444.856
