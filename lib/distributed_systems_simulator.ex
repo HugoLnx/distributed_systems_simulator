@@ -17,7 +17,8 @@ defmodule DistributedSystemsSimulator do
       simulate(simulation_type, %{
         readers: System.get_env("R"),
         writers: System.get_env("W"),
-        duration: System.get_env("D") || "2000"
+        slaves: System.get_env("K"),
+        duration: System.get_env("D") || "2000",
       })
     end
 
@@ -28,7 +29,7 @@ defmodule DistributedSystemsSimulator do
     opts = normalize_input(simulation_type, opts)
 
     {:ok, simulation_pid} =
-      start_simulation(opts.simulation_type, %{readers: opts.readers, writers: opts.writers})
+      start_simulation(opts.simulation_type, Map.take(opts, ~w[readers writers slaves]a))
 
     IO.puts("Starting simulation")
     if opts.duration > 0 do
@@ -51,6 +52,15 @@ defmodule DistributedSystemsSimulator do
     |> start_on_application_supervisor
   end
 
+  defp start_simulation(:masterslave, %{slaves: slaves, readers: readers, writers: writers} = opts) do
+    Supervisor.child_spec(
+      {SimulationSupervisor,
+       %{storage_supervisor_spec: {MasterSlaveSupervisor, %{slaves_amount: slaves}}, worker_router: MasterSlaveRouter, writers: writers, readers: readers, slaves: slaves}},
+      id: :simulation_supervisor
+    )
+    |> start_on_application_supervisor
+  end
+
   defp start_on_application_supervisor(supervisor_spec) do
     {:ok, pid} =
       Application.get_env(@application, :supervisor_pid)
@@ -59,9 +69,6 @@ defmodule DistributedSystemsSimulator do
     set_simulation_pid(pid)
     {:ok, pid}
   end
-
-  defp if_nil(nil, value), do: value
-  defp if_nil(value, _), do: value
 
   defp set_supervisor_pid(pid) do
     Application.put_env(@application, :supervisor_pid, pid)
@@ -101,6 +108,13 @@ defmodule DistributedSystemsSimulator do
       |> to_string
       |> String.to_integer()
 
+    slaves =
+      opts
+      |> Map.get(:slaves)
+      |> if_nil(5)
+      |> to_string
+      |> String.to_integer()
+
     duration =
       opts
       |> Map.get(:duration)
@@ -112,7 +126,11 @@ defmodule DistributedSystemsSimulator do
       simulation_type: simulation_type,
       readers: readers,
       writers: writers,
+      slaves: slaves,
       duration: duration
     }
   end
+
+  defp if_nil(nil, value), do: value
+  defp if_nil(value, _), do: value
 end

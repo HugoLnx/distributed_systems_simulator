@@ -4,7 +4,7 @@ defmodule StorageNode do
   @replication_delay 100
 
   def start_link(%{name: node_name} = config) do
-    GenServer.start_link(__MODULE__, config, name: {:via, Registry, {:registry, node_name}})
+    GenServer.start_link(__MODULE__, config, name: node_name)
   end
 
   def init(config) do

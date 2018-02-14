@@ -6,6 +6,6 @@ defmodule SingleNodeSupervisor do
   end
 
   def init(_) do
-    Supervisor.init([{StorageNode, %{name: "storage_node"}}], strategy: :one_for_one)
+    Supervisor.init([{StorageNode, %{name: {:via, Registry, {:registry, :storage_node}}}}], strategy: :one_for_one)
   end
 end
