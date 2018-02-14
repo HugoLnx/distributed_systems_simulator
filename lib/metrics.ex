@@ -2,7 +2,7 @@ defmodule Metrics do
   use GenServer
 
   @table :metrics
-  @metrics ~w[read write]a
+  @metrics ~w[read write store]a
 
   def start_link(_) do
     GenServer.start_link(__MODULE__, nil)
@@ -14,24 +14,28 @@ defmodule Metrics do
   end
 
   def measure(metric, function) when metric in @metrics do
-    :ets.update_counter(@table, :"#{metric}.count", 1, {nil, 0})
+    :ets.update_counter(@table, metric, [{4, 1}], {nil, 0, 0, 0})
     start = :erlang.monotonic_time()
     result = function.()
-    :ets.update_counter(@table, :"#{metric}.time", :erlang.monotonic_time() - start, {nil, 0})
+    :ets.update_counter(@table, metric, [{2, 1}, {3, :erlang.monotonic_time() - start}], {nil, 0, 0, 0})
     result
   end
 
   def report do
     Enum.each(@metrics, fn metric ->
-      {total, avg} = metric_info(metric)
-      IO.puts "#{metric}: \ttotal:#{total}\tavg:#{avg}"
+      {total, avg, discarded} = metric_info(metric)
+      IO.puts "#{metric}: \ttotal:#{total}\tavg:#{avg}\tdiscard:#{discarded}"
     end)
   end
 
   def metric_info(metric) do
-    [{_, total}] = :ets.lookup(@table, :"#{metric}.count")
-    [{_, time}] = :ets.lookup(@table, :"#{metric}.time")
-    time_millis = time |> div(1000*1000)
-    {total, Float.round(time_millis/total, 3)}
+    case :ets.lookup(@table, metric) do
+      [{_, total_finished, time, total_started}] ->
+        time_millis = time |> div(1000*1000)
+        {total_finished, Float.round(time_millis/total_finished, 3), total_started - total_finished}
+      _ ->
+        IO.puts("Could not receive metric: #{metric}")
+        {0, 0, 0}
+    end
   end
 end

@@ -1,6 +1,9 @@
 defmodule DistributedSystemsSimulator do
   use Application
   @application :distributed_systems_simulator
+  @max_reader_resources       10
+  @max_writer_resources       10
+  @max_storage_node_resources 10
 
   def start(_type, _args) do
     simulation_type = System.get_env("T")
@@ -18,6 +21,7 @@ defmodule DistributedSystemsSimulator do
         readers: System.get_env("R"),
         writers: System.get_env("W"),
         slaves: System.get_env("K"),
+        dummies: System.get_env("M"),
         duration: System.get_env("D") || "2000",
       })
     end
@@ -27,9 +31,14 @@ defmodule DistributedSystemsSimulator do
 
   def simulate(simulation_type, opts) do
     opts = normalize_input(simulation_type, opts)
+    opts = opts
+    |> Map.merge(%{
+      reader_dummies: @max_reader_resources - opts.readers,
+      writer_dummies: @max_writer_resources - opts.writers,
+    })
 
     {:ok, simulation_pid} =
-      start_simulation(opts.simulation_type, Map.take(opts, ~w[readers writers slaves]a))
+      start_simulation(opts.simulation_type, Map.take(opts, ~w[readers writers slaves writer_dummies reader_dummies]a))
 
     IO.puts("Starting simulation")
     if opts.duration > 0 do
@@ -43,19 +52,21 @@ defmodule DistributedSystemsSimulator do
     {:ok, simulation_pid}
   end
 
-  defp start_simulation(:singlenode, %{readers: readers, writers: writers} = opts) do
+  defp start_simulation(:singlenode, %{readers: readers, writers: writers, writer_dummies: writer_dummies, reader_dummies: reader_dummies} = opts) do
+    storage_dummies = @max_storage_node_resources - 1
     Supervisor.child_spec(
       {SimulationSupervisor,
-       %{storage_supervisor_spec: SingleNodeSupervisor, worker_router: SingleNodeRouter, writers: writers, readers: readers}},
+       %{storage_supervisor_spec: SingleNodeSupervisor, worker_router: SingleNodeRouter, writers: writers, readers: readers, reader_dummies: reader_dummies, writer_dummies: writer_dummies, storage_node_dummies: storage_dummies}},
       id: :simulation_supervisor
     )
     |> start_on_application_supervisor
   end
 
-  defp start_simulation(:masterslave, %{slaves: slaves, readers: readers, writers: writers} = opts) do
+  defp start_simulation(:masterslave, %{slaves: slaves, readers: readers, writers: writers, writer_dummies: writer_dummies, reader_dummies: reader_dummies} = opts) do
+    storage_dummies = @max_storage_node_resources - (1 + slaves)
     Supervisor.child_spec(
       {SimulationSupervisor,
-       %{storage_supervisor_spec: {MasterSlaveSupervisor, %{slaves_amount: slaves}}, worker_router: MasterSlaveRouter, writers: writers, readers: readers, slaves: slaves}},
+       %{storage_supervisor_spec: {MasterSlaveSupervisor, %{slaves_amount: slaves}}, worker_router: MasterSlaveRouter, writers: writers, readers: readers, slaves: slaves, reader_dummies: reader_dummies, writer_dummies: writer_dummies, storage_node_dummies: storage_dummies}},
       id: :simulation_supervisor
     )
     |> start_on_application_supervisor
@@ -115,6 +126,13 @@ defmodule DistributedSystemsSimulator do
       |> to_string
       |> String.to_integer()
 
+    dummies =
+      opts
+      |> Map.get(:dummies)
+      |> if_nil(2000)
+      |> to_string
+      |> String.to_integer()
+
     duration =
       opts
       |> Map.get(:duration)
@@ -127,6 +145,7 @@ defmodule DistributedSystemsSimulator do
       readers: readers,
       writers: writers,
       slaves: slaves,
+      dummies: dummies,
       duration: duration
     }
   end

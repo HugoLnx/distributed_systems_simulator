@@ -3,7 +3,7 @@ defmodule WorkerNode do
 
   defmacro __using__(opts) do
     quote do
-      @delay_millis unquote(opts)[:delay_millis] || 5..15
+      @delay_millis unquote(opts)[:delay_millis] || 1..5
       @behaviour WorkerNode
       use GenServer
 
@@ -25,8 +25,12 @@ defmodule WorkerNode do
       end
 
       def schedule_work do
+        Process.send_after(self(), :work, get_delay())
+      end
+
+      defp get_delay do
         delay_min..delay_max = @delay_millis
-        Process.send_after(self(), :work, delay_min + (:rand.uniform(delay_max - delay_min) - 1))
+        (delay_min + (:rand.uniform(delay_max - delay_min) - 1))
       end
     end
   end

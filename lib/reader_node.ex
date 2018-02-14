@@ -4,7 +4,7 @@ defmodule ReaderNode do
   def on_work(router) do
     pid = router.where_to_read()
     Metrics.measure(:read, fn ->
-      GenServer.call(pid, {:read, FavoriteCoffees.random_person()})
+      GenServer.call(pid, {:read, FavoriteCoffees.random_person()}, :infinity)
     end)
   end
 end
